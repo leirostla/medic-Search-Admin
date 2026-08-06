@@ -2,6 +2,7 @@
 from app_medic_search.models import *
 from app_medic_search.models.especialidade import Especialidade
 from app_medic_search.models.endereco import Endereco
+from django.db.models import Sum, Count
 
 # Create your models here.
 class Profile(models.Model):
@@ -34,3 +35,15 @@ class Profile(models.Model):
             instance.profile.save()
         except:
             pass
+
+    def show_scoring_average(self):
+        from .Rating import Rating
+        try:
+            ratings = Rating.objects.filter(user_rated=self.user).aggregate(Sum('value'), Count('user'))
+            if ratings['user__count'] > 0:
+                scoring_average = ratings['value__sum'] / ratings['user__count']
+                scoring_average = round(scoring_average, 2) # Arredondando o valor para duas casas decimais
+                return scoring_average
+            return 'Sem avaliações'
+        except:
+            return 'Sem avaliações'
