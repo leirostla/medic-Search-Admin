@@ -37,7 +37,7 @@ class Profile(models.Model):
             pass
 
     def show_scoring_average(self):
-        from .Rating import Rating
+        from .rating import Rating
         try:
             ratings = Rating.objects.filter(user_rated=self.user).aggregate(Sum('value'), Count('user'))
             if ratings['user__count'] > 0:

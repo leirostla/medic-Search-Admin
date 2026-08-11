@@ -12,7 +12,7 @@ def list_medico_view(request):
     cidade = request.GET.get('cidade')
     estado = request.GET.get('estado')
 
-    medicos = Profile.objects
+    medicos = Profile.objects.all()
     if nome is not None and nome != '':
         print('Nome: %s' % nome)
         medicos = medicos.filter(Q(user__username__contains=nome) | Q(user__first_name__contains=nome))
@@ -29,7 +29,7 @@ def list_medico_view(request):
         print('Estado: %s' % estado)
         medicos = medicos.filter(enderecos__neighborhood__city__state=estado)
 
-    if len(medicos) > 0:
+    if medicos.exists():
         paginator = Paginator(medicos, 8)
         page = request.GET.get('page')
         medicos = paginator.get_page(page)
@@ -42,4 +42,4 @@ def list_medico_view(request):
         'parameters': parameters
     }
    
-    return render(request, template_name='medicos/list.html', context=context, status=200)
+    return render(request, template_name='medicos/medicos.html', context=context, status=200)
