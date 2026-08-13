@@ -2,6 +2,7 @@
 from app_medic_search.models import *
 from app_medic_search.models.especialidade import Especialidade
 from app_medic_search.models.endereco import Endereco
+from app_medic_search.models.rating import Rating
 from django.db.models import Sum, Count
 
 # Create your models here.
@@ -47,3 +48,11 @@ class Profile(models.Model):
             return 'Sem avaliações'
         except:
             return 'Sem avaliações'
+
+    def show_favorites(self):
+        ids = [result.id for result in self.favoritos.all()]
+        return Profile.objects.filter(user__id__in=ids)
+
+    def show_ratings(self):
+        
+        return Rating.objects.filter(user_rated=self.user)

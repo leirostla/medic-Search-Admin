@@ -1,9 +1,44 @@
-from django.http import HttpResponse
+from app_medic_search.models.profile import Profile 
+from django.core.paginator import Paginator
+from django.shortcuts import redirect, render, get_object_or_404 
+from app_medic_search.forms.UserProfileForm import UserProfileForm
+
+
 
 def list_profile_view(request, id=None):
 
+    profile = None
     if id is None and request.user.is_authenticated:
-        id = request.user.id
+        profile = Profile.objects.filter(user=request.user).first()
+    elif id is not None:
+        profile = Profile.objects.filter(user__id=id).first()
     elif not request.user.is_authenticated:
-        id = 0
-    return HttpResponse('<h1>Usuário de id %s!</h1>' % id)
+        return redirect(to='/')
+
+    favorites = profile.show_favorites()
+    if len(favorites) > 0:
+        paginator = Paginator(favorites, 8)
+        page = request.GET.get('page')
+        favorites = paginator.get_page(page)
+
+    ratings = profile.show_ratings()
+    if len(ratings) > 0:
+        paginator = Paginator(ratings, 8)
+        page = request.GET.get('page')
+        ratings = paginator.get_page(page)
+
+    context = {
+        'profile': profile,
+        'favorites': favorites,
+        'ratings': ratings,
+    }
+
+    return render(request, template_name='profile/profile.html', context=context, status=200)
+
+def edit_profile(request):
+    profile = get_object_or_404(Profile, user=request.user)
+    profile_form = UserProfileForm(instance=profile)
+    context = {
+        'profile_form': profile_form,
+    }
+    return render(request, template_name='user/profileUser.html', context=context, status=200)
