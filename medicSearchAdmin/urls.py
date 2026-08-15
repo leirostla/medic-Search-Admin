@@ -26,6 +26,7 @@ from django.conf.urls import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('app_medic_search.urls.HomeUrls')),
+    path('', include('app_medic_search.urls.AuthUrls')),
     path('profile/', include('app_medic_search.urls.ProfileUrls')),
     path('medico/', include('app_medic_search.urls.MedicoUrls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
