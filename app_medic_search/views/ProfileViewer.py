@@ -1,7 +1,7 @@
 from app_medic_search.models.profile import Profile 
 from django.core.paginator import Paginator
 from django.shortcuts import redirect, render, get_object_or_404 
-from app_medic_search.forms.UserProfileForm import UserProfileForm
+from app_medic_search.forms.UserProfileForm import UserProfileForm, UserForm
 
 
 
@@ -37,8 +37,45 @@ def list_profile_view(request, id=None):
 
 def edit_profile(request):
     profile = get_object_or_404(Profile, user=request.user)
-    profile_form = UserProfileForm(instance=profile)
+    emailUnused = True
+
+    message = None
+
+    if request.method == 'POST':
+        profileForm = UserProfileForm(request.POST, request.FILES, instance=profile)
+        userForm = UserForm(request.POST, request.FILES, instance=request.user)
+
+        # Verifica se o e-mail que o usuário está tentando utilizar em seu perfil já existe em outro perfil
+        verifyEmail = Profile.objects.filter(user__email=request.POST['email']).exclude(user__id=request.user.id).first()
+        emailUnused = verifyEmail is None
+    else:
+        profileForm = UserProfileForm(instance=profile)
+        userForm = UserForm(instance=request.user)
+
+    if profileForm.is_valid() and userForm.is_valid() and emailUnused:
+        profileForm.save()
+        userForm.save()
+        message = {'type': 'success', 'text': 'Dados atualizados com sucesso!'}
+    else:
+        if request.method == 'POST':
+            
+            if not emailUnused:
+                message = {'type': 'danger', 'text': 'Dados Inválidos!'}
+            else:
+                message = {'type': 'danger', 'text': 'O e-mail informado já está em uso por outro usuário.'}
+
+    # Até aqui, antes do context
+
     context = {
-        'profile_form': profile_form,
+        'profileForm': profileForm,
+        'userForm': userForm,
+        'message': message
     }
-    return render(request, template_name='user/profileUser.html', context=context, status=200)
+
+    return render(request, template_name='user/profileUser.html', context=context, status=200)  
+
+
+
+
+
+

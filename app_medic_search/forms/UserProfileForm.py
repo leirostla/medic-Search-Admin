@@ -24,3 +24,14 @@ class UserProfileForm(ModelForm):
             'birthday': forms.DateInput(attrs={'class': "form-control", "type": "date"}),
             'image': forms.FileInput(attrs={'class': "form-control"})
         }
+
+class UserForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': "form-control"}),
+            'first_name': forms.TextInput(attrs={'class': "form-control"}),
+            'last_name': forms.TextInput(attrs={'class': "form-control"}),
+            'email': forms.EmailInput(attrs={'class': "form-control"})
+        }
