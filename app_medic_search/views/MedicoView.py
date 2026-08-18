@@ -1,8 +1,10 @@
 from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
-from app_medic_search.models.profile import Profile
+from app_medic_search.forms.MedicoForm import MedicoRatingForm
+from app_medic_search.models.profile import Profile, Rating
 
 def list_medico_view(request):
 
@@ -108,3 +110,27 @@ def remove_favorite_view(request):
         arguments += "&msg=%s&type=%s" % (msg, _type)
 
     return redirect(to='/profile/%s' % arguments)
+
+@login_required
+def rated_medico(request, medico_id=None):
+    print('ABC ABC')
+    medico = Profile.objects.filter(user__id=medico_id).first()
+    rating = Rating.objects.filter(user=request.user, user_rated=medico.user).first()
+    message = None
+    inicial = {'user': request.user, 'user_rated': medico.user}
+    if request.method == 'POST':
+        rating_form = MedicoRatingForm(request.POST, instance=rating, initial=inicial)
+    else:
+        rating_form = MedicoRatingForm(instance=rating, initial=inicial)
+
+    if rating_form.is_valid():
+        rating_form.save()
+        message = {'type': 'success', 'text': 'Avaliação salva com sucesso!'}
+    else:
+        if request.method == 'POST':
+            message = {'type': 'danger', 'text': 'Erro ao salvar a avaliação. Verifique os campos e tente novamente.'}
+
+    context = { 'rating_form': rating_form, 'medico': medico, 'message': message }
+
+    return render(request, template_name='medicos/rating.html', context=context, status=200)
+    

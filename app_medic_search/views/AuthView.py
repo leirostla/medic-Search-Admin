@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from app_medic_search.models.profile import Profile
-from app_medic_search.forms.AuthForm import LoginForm
+from app_medic_search.forms.AuthForm import LoginForm, RegisterForm
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 import hashlib
 
 def login_view(request):
+
     loginForm = LoginForm()
     message = None
     
@@ -44,5 +45,52 @@ def login_view(request):
         'link_href': '/register'
     }
 
-    print('ABC ABC ABC')
     return render(request, template_name='auth/auth.html', context=context, status=200)
+
+def register_view(request):
+    registerForm = RegisterForm()
+    message = None
+    if request.user.is_authenticated:
+        return redirect('/')
+
+    if request.method == 'POST':
+
+        # Alterado por mim, deferente do livro
+        registerForm = RegisterForm(request.POST)
+        if registerForm.is_valid():
+            username = registerForm.cleaned_data['username']
+            email = registerForm.cleaned_data['email']
+            password = registerForm.cleaned_data['password']
+
+            verify_user_name = User.objects.filter(username=username).first()
+            verify_email = User.objects.filter(email=email).first()
+
+            if verify_user_name is not None:
+                message = {'type':'danger', 'text': 'Já existe um usuário com este username'}
+            elif verify_email is not None:
+                message = {'type':'danger', 'text': 'Já existe um usuário com este e-mail'}
+            else:
+                user = User.objects.create_user(username,email,password)
+                if user is not None:
+                    message = {'type':'danger', 'text': 'Conta criada com sucesso'}
+                else:
+                    message = {'type':'danger', 'text': 'Um erro ocorreu ao criar o usuário'}
+
+    context = {
+                'form': registerForm,
+                'message': message,
+                'title': 'Registrar',
+                'button_text': 'Registrar',
+                'link_text': 'Login',
+                'link_href': '/login'
+            }
+
+    return render(request, template_name='auth/auth.html', context=context, status=200)
+
+def logout_view(request):
+    logout(request)
+    return redirect('/login')
+
+
+
+      

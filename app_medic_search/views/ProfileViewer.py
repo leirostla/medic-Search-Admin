@@ -2,6 +2,7 @@ from app_medic_search.models.profile import Profile
 from django.core.paginator import Paginator
 from django.shortcuts import redirect, render, get_object_or_404 
 from app_medic_search.forms.UserProfileForm import UserProfileForm, UserForm
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -35,6 +36,7 @@ def list_profile_view(request, id=None):
 
     return render(request, template_name='profile/profile.html', context=context, status=200)
 
+@login_required
 def edit_profile(request):
     profile = get_object_or_404(Profile, user=request.user)
     emailUnused = True
